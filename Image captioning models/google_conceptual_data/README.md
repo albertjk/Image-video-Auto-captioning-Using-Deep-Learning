@@ -1,0 +1,1 @@
+The Google Conceptual Captions dataset must be stored in this directory.

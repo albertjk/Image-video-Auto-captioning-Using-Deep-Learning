@@ -1,0 +1,1 @@
+The Flickr8K dataset must be stored in this directory.

@@ -1,0 +1,1 @@
+The MSCOCO dataset must be stored in this directory.

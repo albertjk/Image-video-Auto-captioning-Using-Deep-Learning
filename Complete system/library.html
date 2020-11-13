@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- 
+	Author: Albert Jozsa-Kiraly
+	Project: Image/video auto-captioning using Deep Learning 
+-->
+
+<head>
+	<title>Library page - Video captioning using Deep Learning</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="css/library.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+	<h1>Video captioning using Deep Learning</h1>
+	<h1>Library page</h1>
+	<nav>
+		<a href="home.html">Back to Home page</a>
+		<a href="library.html">Refresh page to show all videos in library</a>
+	</nav>
+
+	<h2>Search captions in library videos:</h2>
+
+	<div class="search-box">
+		<input id="search-txt" type="text" name="" placeholder="Type to search caption">
+		<button type="submit" class="search-btn" onclick="searchCaptionInAllVideos(document.getElementById('search-txt').value)">
+				Search
+			</button>
+	</div>
+
+	<h2 id="resultText"></h2>
+
+	<form id="displayedVideoThumbnails" method="post" action="player.php">
+	</form>
+	
+	<script src="js/video.js"></script>
+
+	<script>
+		// Show the thumbnails of all videos in the library when the window is loaded.
+		window.onload = function() {
+			loadAllVideos();
+		};
+
+		/**
+		 * Loads all videos from the library and displays them in a list. 
+		 * Adds as many buttons to the 'displayedVideoThumbnails' form 
+		 * as there are videos in the 'video_library' directory. 
+		 * Each button is a video thumbnail.		  
+		 */
+		function loadAllVideos() {
+
+			// Get the list of file names in the 'video_library' directory.
+			$.get('getVideoFiles.php', function(data) {
+				var fileList = JSON.parse(data);
+
+				/* Loop over the list of file names. Add buttons to the form.
+				Each button will show a video thumbnail and the file name. */
+				for (var i = 0; i < fileList.length; i++) {
+
+					var playlistItem = document.createElement("input");
+					playlistItem.setAttribute("type", "submit");
+					playlistItem.setAttribute("id", "playlistButton");
+
+					// Get the video name without the ".mp4" extension.
+					var videoName = fileList[i].substring(0, fileList[i].length - ".mp4".length);
+
+					playlistItem.setAttribute("value", videoName);
+					playlistItem.setAttribute("name", "playlistButton");
+
+					// Show the saved video frame as a background image.
+					playlistItem.setAttribute("style", "background-image:url(thumbnails/" + videoName + ".jpg);");
+
+					/* If the user clicks on a video, the name of the clicked video and the names of the displayed video thumbnails 
+					will be sent to the player.php script. The clicked video will be automatically played in the video player 
+					and the video thumbnails will be displayed on the side of the screen in a playlist. */
+					playlistItem.setAttribute('onclick', 'document.getElementById("displayedVideoThumbnails").submit()');
+
+					/* For each video, create a hidden input in the form. Each of these will store as a value the name of the corresponding video.
+					The values will be passed to the PHP script to show only those thumbnails in the playlist that were  
+					search results or all videos of the library if there was no search. */
+					var playListItemName = document.createElement("input");
+					playListItemName.setAttribute("type", "hidden");
+					playListItemName.setAttribute("id", "hidden");
+					playListItemName.setAttribute("value", videoName);
+					playListItemName.setAttribute("name", "playlistItems[]");
+					document.getElementById("displayedVideoThumbnails").appendChild(playListItemName);
+
+					document.getElementById("displayedVideoThumbnails").appendChild(playlistItem);
+				}
+			});
+		}
+
+		/**
+		 * Removes stop words from the input string,
+		 * and returns the result string, which contains
+		 * no stop words.
+		 * @param {string} originalString: the original string which includes stop words
+		 * @return {string} the string without stop words
+		 */
+		function removeStopWords(originalString) {
+
+			// The list of stop words is taken from the NLTK Python module.
+			var stopWords = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll", "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's", 'her', 'hers', 'herself', 'it', "it's", 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', "that'll", 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', "don't", 'should', "should've", 'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', "aren't", 'couldn', "couldn't", 'didn', "didn't", 'doesn', "doesn't", 'hadn', "hadn't", 'hasn', "hasn't", 'haven', "haven't", 'isn', "isn't", 'ma', 'mightn', "mightn't", 'mustn', "mustn't", 'needn', "needn't", 'shan', "shan't", 'shouldn', "shouldn't", 'wasn', "wasn't", 'weren', "weren't", 'won', "won't", 'wouldn', "wouldn't"];
+
+			var originalTokens = originalString.toLowerCase().split(" ");
+			var cleanTokens = [];
+			for(var i = 0; i < originalTokens.length; i++) {
+				stopWord = false;
+
+				for(var j = 0; j < stopWords.length; j++) {
+					if(originalTokens[i] == stopWords[j]) {
+						stopWord = true;
+						break;
+					}	
+				}
+
+				if(!stopWord) {
+					cleanTokens.push(originalTokens[i]);
+				}
+			}
+
+			// Create a string of the clean tokens.
+			var cleanString = cleanTokens.join(" ");
+
+			return cleanString;
+		}
+
+		/**
+		 * Searches a specific term in the captions of all videos of the library.
+		 * Opens each text file that contains captions, and searches for the entered term.
+		 * If the term is part of any of the captions of a video, the video's name is added
+		 * to the array of results. The thumbnails of only those videos are displayed 
+		 * on the screen that have an associated caption which contains the search term.
+		 * @param {string} searchTerm: The term to search for in the captions of library videos
+		 */
+		function searchCaptionInAllVideos(searchTerm) {
+
+			// Check if the user entered a search term.
+			if(searchTerm.length > 0) {
+
+				// Remove stop words from the search term.				
+				var cleanSearchTerm = removeStopWords(searchTerm);
+
+				/* If the search term was found in a video caption, 
+				the name of the associated video will be added to this array. */
+				var results = new Array();
+
+				// Get the list of file names in the 'captions' directory.
+				$.get('getCaptionFiles.php', function(data) {					
+					var fileList = JSON.parse(data);
+
+					// Loop over all text files in the 'captions' directory. 
+					for (var i = 0; i < fileList.length; i++) {
+
+						var captionFile = "captions/" + fileList[i];
+
+						// Open each file.
+						var rawFile = new XMLHttpRequest();
+						rawFile.open("GET", captionFile, false);
+						rawFile.onreadystatechange = function() {
+							if (rawFile.readyState == 4) {
+								if (rawFile.status == 200 || rawFile.status == 0) {
+									var allText = rawFile.responseText;
+
+									// Each line contains a caption and a start time. Get each line.
+									lines = allText.split('\n');
+
+									/* Loop over each line. Split the line around the # symbol,
+									to get the caption and the start time. */
+									for (var j = 0; j < lines.length; j++) {
+
+										var line = lines[j].split('#');
+										var caption = line[0];
+										var startTime = line[1];
+
+										// Remove stop words from the caption for the search.				
+										var cleanCaption = removeStopWords(caption);
+
+										/* If the cleaned caption includes the cleaned search term, a result is found.
+										Add the video's name to the results array. The video has the 
+										same name as its associated caption file. */
+										if (cleanCaption.toLowerCase().includes(cleanSearchTerm.toLowerCase())) {
+
+											// Remove the "captions/" substring and the ".txt" substring. 
+											var videoFile = captionFile.substring("captions/".length, captionFile.length - ".txt".length);
+
+											results.push(videoFile);
+
+											// Break the inner loop, so the next caption file will be opened.
+											break;
+										}
+									}
+								}
+							}
+						}
+						rawFile.send(null);
+					}
+
+					// Display the thumbnails of those videos whose names are in the results array.
+					if (results.length > 0) {
+						document.getElementById('resultText').innerHTML = "'" + cleanSearchTerm + "' was found in the following videos:";
+					} else {
+						document.getElementById('resultText').innerHTML = "'" + cleanSearchTerm + "' was not found in any videos.";
+					}
+					loadResultVideos(results);
+				});
+			} else {
+				alert("Please enter a search term.");
+			}
+		}
+
+		/**
+		 * Counts the number of input elements that have a specific id.
+		 * @param {string} id: The id of the input elements to be counted
+		 * @return {number} The number of input elements that have the specified id
+		 */
+		function countId(id) {
+
+			var count = 0;
+
+			$("input").each(function() {
+				if (this.id == id) {
+					count += 1;
+				}
+			});
+
+			return count;
+		}
+
+		/**
+		 * Displays the thumbnails of only those videos which have associated captions 
+		 * that contain the search term. Each thumbnail is displayed as a button.
+		 * @param {array} listOfFiles: The array which contains the names of the videos which have captions that contain the search term
+		 */
+		function loadResultVideos(listOfFiles) {
+
+			var elementsToRemove = countId("playlistButton");
+
+			/* Remove all previous hidden input elements and video thumbnails from the page. 
+			Those hidden elements and thumbnails that are the result of the search will be added back to the page. */
+			for (var i = 0; i < elementsToRemove; i++) {
+				document.getElementById("hidden").remove();
+				document.getElementById("playlistButton").remove();
+			}
+
+			/* Loop over the list of video names, and add
+			as many buttons (thumbnails) as there are elements in listOfFiles. */
+			for (var i = 0; i < listOfFiles.length; i++) {
+
+				var playlistItem = document.createElement("input");
+				playlistItem.setAttribute("type", "submit");
+				playlistItem.setAttribute("id", "playlistButton");
+
+				var videoName = listOfFiles[i];
+
+				playlistItem.setAttribute("value", videoName);
+				playlistItem.setAttribute("name", "playlistButton");
+
+				// Show the saved video frame as a background image.
+				playlistItem.setAttribute("style", "background-image:url(thumbnails/" + videoName + ".jpg);");
+
+				/* If the user clicks on a video, the name of the clicked video and the names of the displayed video thumbnails 
+				will be sent to the player.php script. The clicked video will be automatically played in the video player 
+				and the video thumbnails will be displayed on the side of the screen in a playlist. */
+				playlistItem.setAttribute('onclick', 'document.getElementById("displayedVideoThumbnails").submit()');
+
+				/* For each video, create a hidden input in the form. Each of these will store as a value 
+				the name of the corresponding video. The values will be passed to the PHP script to show 
+				only those thumbnails in the playlist that were search results. */
+				var playListItemName = document.createElement("input");
+				playListItemName.setAttribute("type", "hidden");
+				playListItemName.setAttribute("id", "hidden");
+				playListItemName.setAttribute("value", videoName);
+				playListItemName.setAttribute("name", "playlistItems[]");
+				document.getElementById("displayedVideoThumbnails").appendChild(playListItemName);
+
+				document.getElementById("displayedVideoThumbnails").appendChild(playlistItem);
+			}
+
+			/* Store the search term string in a hidden input. This string is passed to player.php 
+			to show only those markers of captions in the player that contain the search term. */
+			var searchTermElement = document.createElement("input");
+			searchTermElement.setAttribute("type", "hidden");
+			searchTermElement.setAttribute("id", "hidden");
+			searchTermElement.setAttribute("value", document.getElementById('search-txt').value);
+			searchTermElement.setAttribute("name", "librarySearchTerm");
+			document.getElementById("displayedVideoThumbnails").appendChild(searchTermElement);
+		}
+	</script>
+</body>
+
+</html>

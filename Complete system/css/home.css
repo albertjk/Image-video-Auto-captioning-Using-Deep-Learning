@@ -1,0 +1,78 @@
+/* 
+	Author: Albert Jozsa-Kiraly
+	Project: Image/video auto-captioning using Deep Learning
+*/
+
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+}
+
+a {
+	cursor: pointer;
+	background-color: #005ce6;
+	color: white;
+	padding: 8px 18px;
+	text-decoration: none;
+	text-align: center;
+	display: inline-block;
+	border-radius: 5px;
+	font-size: 15px;
+}
+
+a:hover {
+	background-color: #0000ff;
+}
+
+#centralText {
+	padding-top: 7%;
+}
+
+input{
+	margin: 8px;
+	cursor: pointer;
+	background-color: #005ce6;
+	color: white;
+	padding: 8px 18px;
+	text-decoration: none;
+	text-align: center;
+	display: inline-block;
+	border-radius: 5px;
+	border: none;
+	font-size: 15px;
+}
+
+input:hover {
+	background-color: #0000ff;
+}
+
+input:disabled {
+	cursor: auto;
+	background-color: gray;
+}
+
+#video_file {
+	display: none;
+}
+
+#file_location
+{
+    display: inline;
+    background-color: #fff;
+    font-size: 14px;
+    padding: 10px 30px 10px 10px;
+    width: 250px;
+    border: 1px solid #999;
+    box-shadow: inset 1px 1px 5px #ccc;
+    z-index: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+footer{ 
+  position:absolute; 
+  bottom:0; 
+  width:99%; 
+}
+

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- 
+	Author: Albert Jozsa-Kiraly
+	Project: Image/video auto-captioning using Deep Learning 
+-->
+
+<head>
+	<title>Home page - Video captioning using Deep Learning</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="css/home.css">	
+</head>
+
+<body>
+	<h1>Video captioning using Deep Learning</h1>
+	<h1>Home page</h1>
+	<nav>
+		<a href="library.html">Go to video library</a>
+	</nav>
+	<h2 id="centralText">Browse a video, then process it and add it to your library!</h2>
+	<input type="button" id='browse_button' value="Browse video" /> 
+	<span id="file_path"></span>
+	
+	<form action="uploadVideo.php" method="POST" enctype="multipart/form-data">
+		<input type="file" id="video_file"  name="video_file" value="Browse video"/>
+		<input type="submit" id='process_button' value="Process video and add to library"/>
+	</form>
+	
+	<footer>
+		<p>Computing Science and Mathematics</p>
+		<p>Faculty of Natural Sciences</p>
+		<p>University of Stirling</p>
+		<p>System created by <strong>Albert Jozsa-Kiraly</strong> for Honours Project, 2018-2019</p>
+	</footer>
+
+	<script>		
+		window.onload = function() {
+			var videoFile = document.getElementById('video_file');
+			var filePath = document.getElementById('file_path');
+			var browseButton = document.getElementById('browse_button');
+			var processButton = document.getElementById('process_button');
+
+			/* The 'Process video and add to library' button is disabled initially.
+			It will not be disabled anymore if the user has browsed a video. */
+			document.getElementById('process_button').disabled = true;
+
+			/* Create a click event handler for the browseButton, and a change event
+			handler for the videoFile element. */
+			browseButton.onclick = function() {
+				videoFile.click();
+			};
+			videoFile.onchange = function() {
+
+				// If the video has been browsed, get the video file name and display it.
+				var fileName = videoFile.value.split('\\')[videoFile.value.split('\\').length - 1];
+				filePath.innerHTML = "<b>Selected file: </b>" + fileName;
+
+				// Enable the 'Process video and add to library' button.
+				document.getElementById('process_button').disabled = false;
+			};
+		};
+	</script>
+	
+</body>
+
+</html>

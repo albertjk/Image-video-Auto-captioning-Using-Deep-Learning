@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- 
+	Author: Albert Jozsa-Kiraly
+	Project: Image/video auto-captioning using Deep Learning 
+-->
+
+<head>
+	<title>Video is being processed</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="css/status.css">
+</head>
+
+<body>
+	<h2>The video has been uploaded and is currently being processed. Please wait...</h2>
+	<div class="loader"></div>
+	<script>
+
+		/**
+		* Checks every three seconds if the caption text file has been created. 
+		* If so, it redirects to the Library page.
+		*/		
+		function perform_check() {
+
+			// AJAX call to check if the caption text file has been created.
+			var xhttp = new XMLHttpRequest();
+			
+			// The checkStatus.php script returns a message if the file has been created.
+			xhttp.open("GET", "checkStatus.php", true);
+			xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xhttp.send();		
+			
+			xhttp.onreadystatechange = function() {
+				if(this.readyState == 4 && this.status == 200) {
+					
+					// Store the response message.
+					var responseMessage = this.responseText;	
+
+					// If the caption file is created, this message is returned, so redirect to the Library page.
+					if(responseMessage == "Caption file exists.") {
+						window.location.replace("library.html");
+					}
+				};
+			}
+		}		
+
+		// Check every three seconds.
+		setInterval(perform_check, 3000)
+	</script>
+</body>
+
+</html>
